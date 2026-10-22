@@ -97,5 +97,24 @@ public class MySpringApplicationContext {
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
+
+        //如果没有创建成功，返回null
+        // return null;
+    }
+
+    public Object getBean(String beanId) {
+        if (singletonObjects.containsKey(beanId)) {
+            return singletonObjects.get(beanId);
+        }
+
+        if (beanDefinitionMap.containsKey(beanId)) {
+            BeanDefinition beanDefinition = beanDefinitionMap.get(beanId);
+            if ("prototype".equals(beanDefinition.getScope())) {
+                return createBean(beanDefinition);
+            }
+        }
+
+        // Exception in thread "main" org.springframework.beans.factory.NoSuchBeanDefinitionException: No bean named 'MonsterDao' available
+        throw new RuntimeException("No bean named '" + beanId + "' available");
     }
 }
