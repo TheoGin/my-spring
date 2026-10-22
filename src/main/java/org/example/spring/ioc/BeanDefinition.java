@@ -1,15 +1,15 @@
 package org.example.spring.ioc;
 
 public class BeanDefinition {
-    private String classFullPath;
+    private Class clazz;
     private String scope;
 
-    public String getClassFullPath() {
-        return classFullPath;
+    public Class getClazz() {
+        return clazz;
     }
 
-    public void setClassFullPath(String classFullPath) {
-        this.classFullPath = classFullPath;
+    public void setClazz(Class clazz) {
+        this.clazz = clazz;
     }
 
     public String getScope() {
@@ -23,7 +23,7 @@ public class BeanDefinition {
     @Override
     public String toString() {
         return "BeanDefinition{" +
-                "classFullPath='" + classFullPath + '\'' +
+                "clazz='" + clazz + '\'' +
                 ", scope='" + scope + '\'' +
                 '}';
     }
