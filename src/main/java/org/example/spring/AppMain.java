@@ -9,10 +9,17 @@ import org.example.spring.ioc.MySpringConfig;
 public class AppMain {
     public static void main(String[] args) {
         MySpringApplicationContext ioc = new MySpringApplicationContext(MySpringConfig.class);
-        MonsterDao monsterDao = (MonsterDao) ioc.getBean("monsterDao01");
+        /* MonsterDao monsterDao = (MonsterDao) ioc.getBean("monsterDao01");
         System.out.println(monsterDao);
 
         MonsterService monsterService = (MonsterService) ioc.getBean("monsterService");
-        System.out.println(monsterService);
+        System.out.println(monsterService); */
+        System.out.println(ioc.getBean("monsterDao01"));
+        System.out.println(ioc.getBean("monsterDao01"));
+        System.out.println(ioc.getBean("monsterDao01"));
+        System.out.println("---------------");
+        System.out.println(ioc.getBean("monsterService"));
+        System.out.println(ioc.getBean("monsterService"));
+        System.out.println(ioc.getBean("monsterService"));
     }
 }
