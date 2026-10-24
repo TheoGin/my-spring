@@ -8,7 +8,8 @@ public class MyBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
         System.out.println("MyBeanPostProcessor postProcessBeforeInitialization().. bean=" + bean + " beanName=" + beanName);
-        return bean;
+        // return bean;
+        return null;
     }
 
     @Override

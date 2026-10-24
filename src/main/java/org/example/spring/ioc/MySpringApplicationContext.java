@@ -113,7 +113,10 @@ public class MySpringApplicationContext {
 
             System.out.println("=================创建了实例：" + instance + "==================");
             for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
-                instance = beanPostProcessor.postProcessBeforeInitialization(instance, beanId);
+                Object current = beanPostProcessor.postProcessBeforeInitialization(instance, beanId);
+                if (current != null) {
+                    instance = current;
+                }
             }
 
             if (instance instanceof InitializingBean) {
@@ -125,7 +128,10 @@ public class MySpringApplicationContext {
             }
 
             for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
-                instance = beanPostProcessor.postProcessAfterInitialization(instance, beanId);
+                Object current = beanPostProcessor.postProcessAfterInitialization(instance, beanId);
+                if (current != null) {
+                    instance = current;
+                }
             }
 
             return instance;
