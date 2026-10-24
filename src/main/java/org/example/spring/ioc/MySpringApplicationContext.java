@@ -5,11 +5,14 @@ import org.example.spring.annotation.Autowired;
 import org.example.spring.annotation.Component;
 import org.example.spring.annotation.ComponentScan;
 import org.example.spring.annotation.Scope;
+import org.example.spring.processor.BeanPostProcessor;
+import org.example.spring.processor.InitializingBean;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,22 +21,23 @@ public class MySpringApplicationContext {
     private Class configClass;
     private ConcurrentHashMap<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, Object> singletonObjects = new ConcurrentHashMap<>();
+    private ArrayList<BeanPostProcessor> beanPostProcessorList = new ArrayList<>();
 
     public MySpringApplicationContext(Class configClass) {
         this.configClass = configClass;
         scanBeanByConfigClass();
-        System.out.println("beanDefinitionMap: " + beanDefinitionMap);
+        // System.out.println("beanDefinitionMap: " + beanDefinitionMap);
 
         Enumeration<String> keys = beanDefinitionMap.keys();
         while (keys.hasMoreElements()) {
             String beanId = keys.nextElement();
             BeanDefinition beanDefinition = beanDefinitionMap.get(beanId);
             if ("singleton".equals(beanDefinition.getScope())) {
-                Object bean = createBean(beanDefinition);
+                Object bean = createBean(beanDefinition, beanId);
                 singletonObjects.put(beanId, bean);
             }
         }
-        System.out.println("singletonObjects: " + singletonObjects);
+        // System.out.println("singletonObjects: " + singletonObjects);
     }
 
     private void scanBeanByConfigClass() {
@@ -58,12 +62,18 @@ public class MySpringApplicationContext {
                         Class<?> clazz = classLoader.loadClass(fullClassName);
                         beanDefinition.setClazz(clazz);
                         if (clazz.isAnnotationPresent(Component.class)) {
+
                             // System.out.println(className + "是一个bean");
                             Component componentAnnotation = clazz.getAnnotation(Component.class);
                             if (!"".equals(componentAnnotation.value())) {
                                 className = componentAnnotation.value();
                             } else {
                                 className = StringUtils.uncapitalize(className);
+                            }
+
+                            if (BeanPostProcessor.class.isAssignableFrom(clazz)) {
+                                beanPostProcessorList.add((BeanPostProcessor) createBean(beanDefinition, className));
+                                continue;
                             }
 
                             if (clazz.isAnnotationPresent(Scope.class)) {
@@ -85,7 +95,7 @@ public class MySpringApplicationContext {
         }
     }
 
-    public Object createBean(BeanDefinition beanDefinition) {
+    public Object createBean(BeanDefinition beanDefinition, String beanId) {
         Class clazz = beanDefinition.getClazz();
         try {
             Object instance = clazz.getDeclaredConstructor().newInstance();
@@ -100,6 +110,24 @@ public class MySpringApplicationContext {
                     }
                 }
             }
+
+            System.out.println("=================创建了实例：" + instance + "==================");
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessBeforeInitialization(instance, beanId);
+            }
+
+            if (instance instanceof InitializingBean) {
+                try {
+                    ((InitializingBean)instance).afterPropertiesSet();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessAfterInitialization(instance, beanId);
+            }
+
             return instance;
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
@@ -123,7 +151,7 @@ public class MySpringApplicationContext {
         if (beanDefinitionMap.containsKey(beanId)) {
             BeanDefinition beanDefinition = beanDefinitionMap.get(beanId);
             if ("prototype".equals(beanDefinition.getScope())) {
-                return createBean(beanDefinition);
+                return createBean(beanDefinition, beanId);
             }
         }
 

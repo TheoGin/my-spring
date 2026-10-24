@@ -13,8 +13,8 @@ public class AppMain {
         System.out.println(monsterDao); */
 
         MonsterService monsterService = (MonsterService) ioc.getBean("monsterService");
-        monsterService.save();
-        System.out.println(monsterService);
+        // monsterService.save();
+        // System.out.println(monsterService);
         /* System.out.println(ioc.getBean("monsterDao01"));
         System.out.println(ioc.getBean("monsterDao01"));
         System.out.println(ioc.getBean("monsterDao01"));
