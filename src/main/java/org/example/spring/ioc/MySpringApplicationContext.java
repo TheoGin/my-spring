@@ -1,11 +1,13 @@
 package org.example.spring.ioc;
 
 import org.apache.commons.lang.StringUtils;
+import org.example.spring.annotation.Autowired;
 import org.example.spring.annotation.Component;
 import org.example.spring.annotation.ComponentScan;
 import org.example.spring.annotation.Scope;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -87,6 +89,17 @@ public class MySpringApplicationContext {
         Class clazz = beanDefinition.getClazz();
         try {
             Object instance = clazz.getDeclaredConstructor().newInstance();
+            Field[] declaredFields = clazz.getDeclaredFields();
+            for (Field field : declaredFields) {
+                if (field.isAnnotationPresent(Autowired.class)) {
+                    Autowired autowiredAnnotation = field.getAnnotation(Autowired.class);
+                    if (autowiredAnnotation.required()) {
+                        // Exception in thread "main" java.lang.RuntimeException: java.lang.IllegalAccessException: Class org.example.spring.ioc.MySpringApplicationContext can not access a member of class org.example.spring.component.MonsterService with modifiers "private"
+                        field.setAccessible(true);
+                        field.set(instance, getBean(field.getName()));
+                    }
+                }
+            }
             return instance;
         } catch (InstantiationException e) {
             throw new RuntimeException(e);
